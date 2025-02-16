@@ -19,6 +19,12 @@ pipeline {
             }
         }
 
+        stage("Fix Dependencies") {
+            steps {
+                sh 'npm audit fix || true'  // Fix vulnerabilities but continue even if it fails
+            }
+        }
+
         stage("Dependency Check") {
             steps {
                 sh 'npm install --no-audit'
@@ -30,8 +36,8 @@ pipeline {
                 stage("Security Audit") {
                     steps {
                         sh '''
-                           npm audit --audit-level=critical
-                           echo $?
+                            npm audit --audit-level=critical
+                            echo $?
                         '''
                     }
                 }
