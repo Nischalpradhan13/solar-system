@@ -13,18 +13,39 @@ pipeline {
             }
         }
 
-        stage("Install Dependencies") {
+        stage("NPM install") {
             steps {
                 sh 'npm install --no-audit'
             }
         }
 
-        stage("Security Audit") {
+        stage("Dependency Check") {
             steps {
-                sh '''
-                   npm audit --audit-level=critical
-                   echo $?
-                '''
+                sh 'npm install --no-audit'
+            }
+        }
+
+        stage("Dependency Scanning") {
+            parallel {
+                stage("Security Audit") {
+                    steps {
+                        sh '''
+                           npm audit --audit-level=critical
+                           echo $?
+                        '''
+                    }
+                }
+
+                stage("OWASP Dependency Check") {
+                    steps {
+                        dependencyCheck additionalArguments: '''
+                            --scan './'
+                            --out './'
+                            --format 'ALL'
+                            --prettyPrint''', 
+                            odcInstallation: 'OWASP-DepCheck-10'
+                    }
+                }
             }
         }
     }
